@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const Category = require('../models/category');
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -8,7 +9,21 @@ exports.getAllProducts = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
+exports.getWithCategories = async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      include:[
+        {
+          model:Category,
+          through:{ attributes:[] }
+        }
+      ]
+    });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -20,7 +35,6 @@ exports.getProductById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 exports.createProduct = async (req, res) => {
   try {
     const { name, price, description } = req.body;
@@ -30,7 +44,33 @@ exports.createProduct = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+exports.addCategoryToProduct = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.productId);
+    const category = await Category.findByPk(req.params.categoryId);
+    if(product && category)
+      await product.addCategory(category)
+    res.status(201).json(await product.getCategories());
+  } catch (err) {
+    res.status(500).json({error: err.message})
+  }
+};
+exports.addCategoriesToProduct = async (req, res) => {
+  try {
+    var product = Product.findByPk(req.params.productId)
 
+    const categories = Category.findAll({
+      where: {
+        id: req.body.categoryIds
+      }
+    }
+    )
+    if (product && categories.length > 0)
+      await product.addCategories(categories)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+};
 exports.updateProduct = async (req, res) => {
   try {
     const { name, price, description } = req.body;
@@ -47,7 +87,17 @@ exports.updateProduct = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
+exports.updateProductsCategories = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.productId);
+    if(!product)
+      return res.status(404).json({error: 'product not found'});
+    await product.setCategories(req.body.categoryIds);
+    return res.status(200).json(await product.getCategories());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -58,5 +108,17 @@ exports.deleteProduct = async (req, res) => {
     res.json({ message: 'Ürün silindi' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+exports.removeCategoryFromProduct = async (req, res) => {
+  try {
+    const { categoryId, productId } = req.params;
+    const product = await Product.findByPk(productId);
+    const category = await Category.findByPk(categoryId);
+    if (category && product)
+      await product.removeCategory(category);
+    return res.status(200).json(await product.getCategories());
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 };

@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const Category = require('../models/category')
 const sequelize = require('../config/database');
 
 const Product = sequelize.define('Product', {
@@ -18,4 +19,7 @@ const Product = sequelize.define('Product', {
   timestamps: true, // createdAt and updatedAt added auto
 });
 
+
+Product.belongsToMany(Category, {through:'ProductCategory'})
+Category.belongsToMany(Product, {through:'ProductCategory'})
 module.exports = Product;
