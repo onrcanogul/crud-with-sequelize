@@ -1,7 +1,8 @@
 const express = require('express');
 const app = express();
 const sequelize = require('./config/database');
-const productRoutes = require('./routes/productRoutes'); // Product route'u dahil et
+const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 const PORT = 3000;
 
 // Middlewares
@@ -9,6 +10,7 @@ app.use(express.json());
 
 // Routes
 app.use('/products', productRoutes); 
+app.use('/categories', categoryRoutes)
 
 // DB Config
 sequelize.authenticate()
