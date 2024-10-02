@@ -6,12 +6,10 @@ const authMiddleware = (req, res, next) => {
         return res.status(401).json({ message: 'Unauthorized' });
     try {
         const decoded = verifyToken(token);
-        global.currentUserId = req.user.id;
-        req.user = decoded; //send user informations to client.
+        req.user = decoded;
         next();
     } catch (error) {
-        return res.status(403).json({ message: 'Geçersiz token' });
+        return res.status(403).json({ message: 'Invalid token' });
     }
 };
-
 module.exports = authMiddleware;

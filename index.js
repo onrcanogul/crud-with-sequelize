@@ -3,6 +3,7 @@ const app = express();
 const sequelize = require('./config/database');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const authRoutes = require('./routes/authRoutes');
 const exceptionHandler = require('./middlewares/exceptionHandler');
 const Product = require('./models/product');
 const Category = require('./models/category');
@@ -15,8 +16,9 @@ app.use(express.json());
 app.use(exceptionHandler);
 
 // Routes
-app.use('/products', productRoutes);
-app.use('/categories', categoryRoutes)
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/auth', authRoutes);
 
 // DB Config
 User.hasMany(Product, { foreignKey: 'userId' });
