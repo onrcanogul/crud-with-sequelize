@@ -1,124 +1,85 @@
 const Product = require('../models/product');
 const Category = require('../models/category');
 
-exports.getAllProducts = async (req, res) => {
-  try {
-    const products = await Product.findAll();
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-exports.getWithCategories = async (req, res) => {
-  try {
-    const products = await Product.findAll({
-      include:[
-        {
-          model:Category,
-          through:{ attributes:[] }
-        }
-      ]
-    });
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-exports.getProductById = async (req, res) => {
-  try {
-    const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ error: 'Ürün bulunamadı' });
-    }
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-exports.createProduct = async (req, res) => {
-  try {
-    const { name, price, description } = req.body;
-    const product = await Product.create({ name, price, description });
-    res.status(201).json(product);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-exports.addCategoryToProduct = async (req, res) => {
-  try {
-    const product = await Product.findByPk(req.params.productId);
-    const category = await Category.findByPk(req.params.categoryId);
-    if(product && category)
-      await product.addCategory(category)
-    res.status(201).json(await product.getCategories());
-  } catch (err) {
-    res.status(500).json({error: err.message})
-  }
-};
-exports.addCategoriesToProduct = async (req, res) => {
-  try {
-    var product = Product.findByPk(req.params.productId)
+const asyncHandler = require('../wrappers/asyncHandler');
 
-    const categories = Category.findAll({
-      where: {
-        id: req.body.categoryIds
+exports.getAllProducts = asyncHandler(async (req,res) => {
+  const products = await Product.findAll();
+    res.json(products);
+});
+exports.getWithCategories = asyncHandler(async(req, res) => {
+  const products = await Product.findAll({
+    include:[
+      {
+        model:Category,
+        through:{ attributes:[] }
       }
+    ]
+  });
+  res.json(products);
+});
+exports.getProductById = asyncHandler(async (req, res) => {
+  const product = await Product.findByPk(req.params.id);
+  if (!product) {
+    return res.status(404).json({ error: 'Ürün bulunamadı' });
+  }
+  res.json(product);
+});
+exports.createProduct = asyncHandler(async (req, res) => {
+  const { name, price, description } = req.body;
+  const product = await Product.create({ name, price, description });
+  res.status(201).json(product);
+})
+exports.addCategoryToProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findByPk(req.params.productId);
+  const category = await Category.findByPk(req.params.categoryId);
+  if(product && category)
+    await product.addCategory(category)
+  res.status(201).json(await product.getCategories());
+})
+exports.addCategoriesToProduct = asyncHandler(async (req, res) => {
+  var product = Product.findByPk(req.params.productId)
+  const categories = Category.findAll({
+    where: {
+      id: req.body.categoryIds
     }
-    )
-    if (product && categories.length > 0)
-      await product.addCategories(categories)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  });
+  if (product && categories.length > 0)
+    await product.addCategories(categories)
+  return res.json(200).json(await product.getCategories())
+})
+exports.updateProduct = asyncHandler(async (req, res) => {
+  const { name, price, description } = req.body;
+  const product = await Product.findByPk(req.params.id);
+  if (!product) {
+    return res.status(404).json({ error: 'Ürün bulunamadı' });
   }
-};
-exports.updateProduct = async (req, res) => {
-  try {
-    const { name, price, description } = req.body;
-    const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ error: 'Ürün bulunamadı' });
-    }
-    product.name = name;
-    product.price = price;
-    product.description = description;
-    await product.save();
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  product.name = name;
+  product.price = price;
+  product.description = description;
+  await product.save();
+  res.json(product);
+})
+exports.updateProductsCategories = asyncHandler(async (req, res) => {
+  const product = await Product.findByPk(req.params.productId);
+  if(!product)
+    return res.status(404).json({error: 'product not found'});
+  await product.setCategories(req.body.categoryIds);
+  return res.status(200).json(await product.getCategories());
+})
+exports.deleteProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findByPk(req.params.id);
+  if (!product) {
+    return res.status(404).json({ error: 'Ürün bulunamadı' });
   }
-};
-exports.updateProductsCategories = async (req, res) => {
-  try {
-    const product = await Product.findByPk(req.params.productId);
-    if(!product)
-      return res.status(404).json({error: 'product not found'});
-    await product.setCategories(req.body.categoryIds);
-    return res.status(200).json(await product.getCategories());
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-exports.deleteProduct = async (req, res) => {
-  try {
-    const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ error: 'Ürün bulunamadı' });
-    }
-    await product.destroy();
-    res.json({ message: 'Ürün silindi' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-exports.removeCategoryFromProduct = async (req, res) => {
-  try {
-    const { categoryId, productId } = req.params;
-    const product = await Product.findByPk(productId);
-    const category = await Category.findByPk(categoryId);
-    if (category && product)
-      await product.removeCategory(category);
-    return res.status(200).json(await product.getCategories());
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-};
+  await product.destroy();
+  res.json({ message: 'Ürün silindi' });
+})
+exports.removeCategoryFromProduct = asyncHandler(async (req, res) => {
+  const { categoryId, productId } = req.params;
+  const product = await Product.findByPk(productId);
+  const category = await Category.findByPk(categoryId);
+  if (category && product)
+    await product.removeCategory(category);
+  return res.status(200).json(await product.getCategories());
+})
