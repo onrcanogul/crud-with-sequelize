@@ -3,25 +3,26 @@ const app = express();
 const sequelize = require('./config/database');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
-const exceptionHandler = require('./middlewares/exceptionHandler')
-const Product = require('./models/product')
-const Category = require('./models/category')
+const exceptionHandler = require('./middlewares/exceptionHandler');
+const Product = require('./models/product');
+const Category = require('./models/category');
+const User = require('./models/user');
 
 const PORT = 3000;
 
 // Middlewares
-app.use(express.json()); 
+app.use(express.json());
 app.use(exceptionHandler);
 
 // Routes
-app.use('/products', productRoutes); 
+app.use('/products', productRoutes);
 app.use('/categories', categoryRoutes)
 
 // DB Config
-
-
-Product.belongsToMany(Category, {through:'ProductCategory'})
-Category.belongsToMany(Product, {through:'ProductCategory'})
+User.hasMany(Product, { foreignKey: 'userId' });
+Product.belongsTo(User, { foreignKey: 'userId' });
+Product.belongsToMany(Category, { through: 'ProductCategory' });
+Category.belongsToMany(Product, { through: 'ProductCategory' });
 
 sequelize.authenticate()
   .then(() => console.log('Successful connection to db'))

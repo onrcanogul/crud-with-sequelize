@@ -3,16 +3,16 @@ const Category = require('../models/category');
 
 const asyncHandler = require('../wrappers/asyncHandler');
 
-exports.getAllProducts = asyncHandler(async (req,res) => {
+exports.getAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.findAll();
-    res.json(products);
+  res.json(products);
 });
-exports.getWithCategories = asyncHandler(async(req, res) => {
+exports.getWithCategories = asyncHandler(async (req, res) => {
   const products = await Product.findAll({
-    include:[
+    include: [
       {
-        model:Category,
-        through:{ attributes:[] }
+        model: Category,
+        through: { attributes: [] }
       }
     ]
   });
@@ -33,7 +33,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
 exports.addCategoryToProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByPk(req.params.productId);
   const category = await Category.findByPk(req.params.categoryId);
-  if(product && category)
+  if (product && category)
     await product.addCategory(category)
   res.status(201).json(await product.getCategories());
 })
@@ -62,8 +62,8 @@ exports.updateProduct = asyncHandler(async (req, res) => {
 })
 exports.updateProductsCategories = asyncHandler(async (req, res) => {
   const product = await Product.findByPk(req.params.productId);
-  if(!product)
-    return res.status(404).json({error: 'product not found'});
+  if (!product)
+    return res.status(404).json({ error: 'product not found' });
   await product.setCategories(req.body.categoryIds);
   return res.status(200).json(await product.getCategories());
 })
