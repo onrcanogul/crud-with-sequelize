@@ -21,5 +21,9 @@ exports.login = asyncHandler(async (req, res) => {
     if (!isPasswordValid)
         return res.status(404).json({ error: 'user not found' });
     const token = generateToken(user.id);
-    return res.json(200).json(token);
+    const options = {
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+    };
+    return res.json(200).cookie("token", token, options).json(token);
 })

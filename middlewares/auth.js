@@ -1,11 +1,15 @@
 const { verifyToken } = require('../helpers/jwt');
 
 const authMiddleware = (req, res, next) => {
-    const token = req.headers['access-token'];
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+        token = req.headers.authorization.split(" ")[1];
+    }
     if (!token)
         return res.status(401).json({ message: 'Unauthorized' });
     try {
         const decoded = verifyToken(token);
+        console.log(decoded);
         req.user = decoded;
         next();
     } catch (error) {
