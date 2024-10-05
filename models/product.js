@@ -22,6 +22,10 @@ const Product = sequelize.define('Product', {
       model: 'Users',
       key: 'id'
     }
+  },
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   timestamps: true,
