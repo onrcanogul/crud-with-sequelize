@@ -6,13 +6,15 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const authRoutes = require('./routes/authRoutes');
 const basketItemRoutes = require('./routes/basketItemRoutes');
 const basketRoutes = require('./routes/basketRoutes');
-const exceptionHandler = require('./middlewares/exceptionHandler');
 const imageRoutes = require('./routes/imageRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const exceptionHandler = require('./middlewares/exceptionHandler');
 const Product = require('./models/product');
 const Category = require('./models/category');
 const User = require('./models/user');
 const Basket = require('./models/basket');
 const BasketItem = require('./models/basketItem');
+const Order = require('./models/order');
 
 
 const PORT = 3000;
@@ -28,9 +30,13 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/basketItems', basketItemRoutes);
 app.use('/api/baskets', basketRoutes);
+app.use('/api/order', orderRoutes);
 app.use('/api/images', imageRoutes);
 
 // DB Config
+Basket.hasMany(Order, { foreignKey: 'basketId' });
+Order.belongsTo(Basket, { foreignKey: 'basketId' });
+
 User.hasOne(Basket, { foreignKey: 'userId' });
 Basket.belongsTo(User, { foreignKey: 'userId' });
 
