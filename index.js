@@ -4,10 +4,14 @@ const sequelize = require('./config/database');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const authRoutes = require('./routes/authRoutes');
+const basketItemRoutes = require('./routes/basketItemRoutes');
+const basketRoutes = require('./routes/basketRoutes');
 const exceptionHandler = require('./middlewares/exceptionHandler');
 const Product = require('./models/product');
 const Category = require('./models/category');
 const User = require('./models/user');
+const Basket = require('./models/basket');
+const BasketItem = require('./models/basketItem');
 
 const PORT = 3000;
 
@@ -19,10 +23,22 @@ app.use(exceptionHandler);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/basketItems', basketItemRoutes);
+app.use('/api/baskets', basketRoutes);
 
 // DB Config
+User.hasOne(Basket, { foreignKey: 'userId' });
+Basket.belongsTo(User, { foreignKey: 'userId' });
+
+Basket.hasMany(BasketItem, { foreignKey: 'basketId' });
+BasketItem.belongsTo(Basket, { foreignKey: 'basketId' });
+
+Product.hasMany(BasketItem, { foreignKey: 'productId' })
+BasketItem.belongsTo(Product, { foreignKey: 'productId' })
+
 User.hasMany(Product, { foreignKey: 'userId' });
 Product.belongsTo(User, { foreignKey: 'userId' });
+
 Product.belongsToMany(Category, { through: 'ProductCategory' });
 Category.belongsToMany(Product, { through: 'ProductCategory' });
 

@@ -2,12 +2,15 @@ const bcrypt = require('bcryptjs');
 const asyncHandler = require("../wrappers/asyncHandler");
 const User = require('../models/user');
 const { generateToken } = require('../helpers/jwt');
+const BasketItem = require('../models/basketItem');
+const Basket = require('../models/basket');
 
 
 exports.register = asyncHandler(async (req, res) => {
     const { firstName, lastName, email, userName, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ firstName, lastName, email, userName, password: hashedPassword });
+    await Basket.create({ userId: user.id, totalPrice: 0 });
     const token = generateToken(user.id);
     res.status(200).json(token);
 });
